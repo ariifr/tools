@@ -2,7 +2,7 @@ export async function onRequest(context) {
     const secretArray = context.params.secret || [];
     const prefillSecret = secretArray[0] || '';
 
-    // XSS protection: escape secret agar aman jika mengandung quote/karakter HTML
+    // XSS protection
     const safeSecret = escapeHtml(prefillSecret);
 
     const html = `<!DOCTYPE html>
