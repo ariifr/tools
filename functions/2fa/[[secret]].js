@@ -11,7 +11,7 @@ export async function onRequest(context) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Temporary 2FA Manager</title>
-  <link rel="stylesheet" type="text/css" href="/2fa/static/2fa.css">
+  <link rel="stylesheet" type="text/css" href="/assets/static/2fa.css">
 </head>
 <body>
   <div class="container">
@@ -59,7 +59,7 @@ export async function onRequest(context) {
 
     <div id="errorMessage" class="error-message"></div>
   </div>
-  <script src="/2fa/static/2fa.js"></script>
+  <script src="/assets/static/2fa.js"></script>
 </body>
 </html>`;
 
