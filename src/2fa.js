@@ -48,7 +48,7 @@ async function hmacSha1(keyBytes, messageBytes) {
 // Generate TOTP
 async function generateTOTP(hexSecret) {
     const keyBytes = new Uint8Array(hexSecret.match(/.{2}/g).map(byte => parseInt(byte, 16)));
-    let time = Math.floor(Date.now() / 30000);   // let (will be modified)
+    let time = Math.floor(Date.now() / 30000);
     const timeBytes = new Uint8Array(8);
     for (let i = 7; i >= 0; i--) {
         timeBytes[i] = time & 0xff;
@@ -152,11 +152,10 @@ async function copyShortcut() {
 // Extract secret from URL path, accounting for /2fa/ prefix
 function getSecretFromPath() {
     let path = window.location.pathname.replace(/^\/|\/$/g, '');
-    // If the path starts with "2fa/", remove that prefix
     if (path.toLowerCase().startsWith('2fa/')) {
-        path = path.substring(4); // remove '2fa/'
+        path = path.substring(4);
     } else if (path.toLowerCase() === '2fa') {
-        return ''; // just /2fa, no secret
+        return '';
     }
     return path;
 }
@@ -272,6 +271,19 @@ window.addEventListener('popstate', () => {
     }
 });
 
+// Expose initSecret ke window agar onclick dari recent secrets work
+window.initSecret = initSecret;
+window.clearInput = clearInput;
+window.generateFromInput = generateFromInput;
+window.copyTOTP = copyTOTP;
+window.copyShortcut = copyShortcut;
+
 // Initial setup
 renderRecentSecrets();
-checkURLSecret();
+
+// Pastikan auto-generate jalan setelah DOM siap
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkURLSecret);
+} else {
+    checkURLSecret();
+}

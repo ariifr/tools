@@ -1,13 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+export async function onRequest(context) {
+    const secretArray = context.params.secret || [];
+    const prefillSecret = secretArray[0] || '';
 
+    // XSS protection: escape secret agar aman jika mengandung quote/karakter HTML
+    const safeSecret = escapeHtml(prefillSecret);
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Temporary 2FA Manager</title>
-  <link rel="stylesheet" type="text/css" href="src/2fa.css">
+  <link rel="stylesheet" type="text/css" href="/src/2fa.css">
 </head>
-
 <body>
   <div class="container">
     <div class="header">
@@ -15,11 +20,10 @@
       <p>One-time password generator for temporary accounts</p>
     </div>
 
-    <!-- Manual input form -->
     <div class="input-group">
       <label for="secretInput">Enter Secret Code (Base32)</label>
       <div class="input-wrapper">
-        <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" maxlength="64" autocomplete="off">
+        <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" maxlength="64" autocomplete="off" value="${safeSecret}">
         <button class="btn" onclick="clearInput()">Clear</button>
       </div>
       <button class="btn primary" onclick="generateFromInput()">
@@ -27,10 +31,8 @@
       </button>
     </div>
 
-    <!-- Recent secrets (localStorage) -->
     <div id="recentSecrets" class="recent-list" style="display:none;"></div>
 
-    <!-- TOTP Display -->
     <div id="displayArea" class="display-area hidden">
       <div class="code" id="totp">------</div>
       <div class="timer-row">
@@ -57,7 +59,23 @@
 
     <div id="errorMessage" class="error-message"></div>
   </div>
-  <script src="src/2fa.js"></script>
+  <script src="/src/2fa.js"></script>
 </body>
+</html>`;
 
-</html>
+    return new Response(html, {
+        headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
+        }
+    });
+}
+
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
