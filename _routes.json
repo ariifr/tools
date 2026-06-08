@@ -4,6 +4,6 @@
         "/*"
     ],
     "exclude": [
-        "/2fa/static/*"
+        "/assets/2fa/*"
     ]
 }
