@@ -1,11 +1,11 @@
 export async function onRequest(context) {
-    const secretArray = context.params.secret || [];
-    const prefillSecret = secretArray[0] || '';
+  const secretArray = context.params.secret || [];
+  const prefillSecret = secretArray[0] || '';
 
-    // XSS protection
-    const safeSecret = escapeHtml(prefillSecret);
+  // XSS protection
+  const safeSecret = escapeHtml(prefillSecret);
 
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -16,12 +16,12 @@ export async function onRequest(context) {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔐 Temporary 2FA</h1>
+      <h1>2FA Generator</h1>
       <p>One-time password generator for temporary accounts</p>
     </div>
 
     <div class="input-group">
-      <label for="secretInput">Enter Secret Code (Base32)</label>
+      <label for="secretInput">Enter Secret Code</label>
       <div class="input-wrapper">
         <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" maxlength="64" autocomplete="off" value="${safeSecret}">
         <button class="btn" onclick="clearInput()">Clear</button>
@@ -50,7 +50,7 @@ export async function onRequest(context) {
 
       <div class="shortcut-link">
         <span id="shortcutUrl">-</span>
-        <button class="btn-copy" onclick="copyShortcut()" id="copyShortcutBtn">Copy</button>
+        <button class="btn-copy" onclick="copyShortcut()" id="copyShortcutBtn">Copy Shortcut</button>
       </div>
       <div class="account-info">
         Secret: <span id="currentSecret">-</span>
@@ -63,19 +63,19 @@ export async function onRequest(context) {
 </body>
 </html>`;
 
-    return new Response(html, {
-        headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'no-store, no-cache, must-revalidate'
-        }
-    });
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate'
+    }
+  });
 }
 
 function escapeHtml(str) {
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
