@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Streamer</title>
+  <link rel="stylesheet" type="text/css" href="/assets/2fa/style.css?v=2">
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+  <style>
+    /* Player and specific TV styles */
+    .container {
+        max-width: 800px;
+    }
+    .player-wrapper {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #333;
+        background: #000;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .channel-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+        text-align: left;
+    }
+    .channel-item {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #aaa;
+        font-weight: 500;
+    }
+    .channel-item:hover {
+        border-color: #666;
+        color: #fff;
+    }
+    .channel-item.active {
+        border-color: #e57373;
+        color: #fff;
+        background: rgba(229, 115, 115, 0.1);
+    }
+    .channel-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .channel-list::-webkit-scrollbar-track {
+        background: #111;
+        border-radius: 3px;
+    }
+    .channel-list::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+    .channel-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    .now-playing {
+        color: #e57373;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1rem;
+    }
+    
+    .icon-link.upload-icon {
+        right: 3.5rem;
+    }
+    
+    .video-js .vjs-big-play-button {
+        background-color: rgba(0, 0, 0, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        line-height: 60px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .video-js:hover .vjs-big-play-button {
+        background-color: #e57373;
+        border-color: #e57373;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>TV Streamer</h1>
+    </div>
+
+    <div class="input-group">
+      <div class="input-wrapper">
+        <input type="text" id="streamInput" placeholder="ENTER M3U8 STREAM OR PLAYLIST URL" autocomplete="off">
+        <label for="fileInput" class="icon-link upload-icon" title="Upload M3U File">📁</label>
+        <input type="file" id="fileInput" accept=".m3u,.m3u8" style="display: none;">
+        <span class="icon-link" onclick="loadInput()" title="Play/Load">▶️</span>
+      </div>
+    </div>
+
+    <div id="displayArea" class="display-area hidden">
+      <div class="now-playing" id="nowPlaying">NO STREAM</div>
+      <div class="player-wrapper">
+         <video
+            id="my-video"
+            class="video-js vjs-fluid vjs-big-play-centered"
+            controls
+            preload="auto"
+            playsinline
+         ></video>
+      </div>
+      
+      <div id="channelList" class="channel-list"></div>
+    </div>
+    
+    <div id="errorMessage" class="error-message"></div>
+  </div>
+
+  <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@videojs/http-streaming@3.13.0/dist/videojs-http-streaming.min.js"></script>
+  <script>
+    let player = null;
+    const streamInput = document.getElementById('streamInput');
+    const fileInput = document.getElementById('fileInput');
+    const displayArea = document.getElementById('displayArea');
+    const channelList = document.getElementById('channelList');
+    const nowPlaying = document.getElementById('nowPlaying');
+    const errorEl = document.getElementById('errorMessage');
+
+    function initPlayer() {
+        if (!player) {
+            player = videojs('my-video', {
+                fluid: true,
+                aspectRatio: '16:9',
+                controls: true,
+                html5: {
+                    vhs: {
+                        overrideNative: true,
+                    },
+                },
+            });
+            player.on('error', function() {
+                showError('Failed to load stream. Check the URL or CORS policy.');
+            });
+        }
+    }
+
+    function playStream(url, name) {
+        initPlayer();
+        hideError();
+        displayArea.classList.remove('hidden');
+        nowPlaying.textContent = name;
+        
+        player.src({
+            src: url,
+            type: 'application/x-mpegURL',
+        });
+        player.play().catch(e => console.warn('Autoplay prevented', e));
+    }
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+    }
+
+    function hideError() {
+        errorEl.classList.remove('show');
+    }
+
+    function renderChannelList(channels) {
+        channelList.innerHTML = '';
+        if (channels.length === 0) return;
+        
+        channels.forEach((ch) => {
+            const btn = document.createElement('div');
+            btn.className = 'channel-item';
+            btn.textContent = ch.name;
+            btn.onclick = () => {
+                document.querySelectorAll('.channel-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                playStream(ch.url, ch.name);
+            };
+            channelList.appendChild(btn);
+        });
+        displayArea.classList.remove('hidden');
+    }
+
+    function handlePlaylistContent(text) {
+        const lines = text.split('\n');
+        const channels = [];
+        let currentChannel = {};
+        
+        for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith('#EXTINF:')) {
+                const splitIdx = line.indexOf(',');
+                const name = splitIdx !== -1 ? line.substring(splitIdx + 1).trim() : 'Unknown';
+                currentChannel.name = name || 'Unknown';
+            } else if (line && !line.startsWith('#')) {
+                currentChannel.url = line;
+                channels.push(currentChannel);
+                currentChannel = {};
+            }
+        }
+        
+        if (channels.length > 0) {
+            renderChannelList(channels);
+            // Auto play first channel
+            const firstBtn = channelList.querySelector('.channel-item');
+            if (firstBtn) firstBtn.click();
+        } else {
+            showError('No channels found in playlist.');
+        }
+    }
+
+    async function loadInput() {
+        hideError();
+        const val = streamInput.value.trim();
+        if (!val) {
+            showError('Please enter a URL');
+            return;
+        }
+        
+        try {
+            // First try to fetch to see if it's an IPTV playlist
+            const res = await fetch(val);
+            const text = await res.text();
+            if (text.includes('#EXTINF')) {
+                handlePlaylistContent(text);
+                return;
+            }
+        } catch (e) {
+            console.log("Fetch failed or not a playlist, trying to play directly.", e);
+        }
+        
+        // If fetch fails (CORS) or it doesn't contain #EXTINF, play directly
+        channelList.innerHTML = '';
+        playStream(val, 'Custom Stream');
+    }
+
+    streamInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loadInput();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        hideError();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            if (text.includes('#EXTM3U')) {
+                handlePlaylistContent(text);
+            } else {
+                showError('Invalid M3U playlist file.');
+            }
+        };
+        reader.readAsText(file);
+        // reset file input
+        fileInput.value = '';
+    });
+
+  </script>
+</body>
+</html>
