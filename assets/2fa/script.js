@@ -6,15 +6,14 @@ let updateInterval = null;
 // DOM elements
 const secretInput = document.getElementById('secretInput');
 const displayArea = document.getElementById('displayArea');
+const totpBox = document.getElementById('totpBox');
 const codeEl = document.getElementById('totp');
+const copyTooltip = document.getElementById('copyTooltip');
 const secondsEl = document.getElementById('seconds');
 const barEl = document.getElementById('bar');
+const nextCodeEl = document.getElementById('nextCode');
 const errorEl = document.getElementById('errorMessage');
-const currentSecretEl = document.getElementById('currentSecret');
-const shortcutUrl = document.getElementById('shortcutUrl');
-const copyShortcutBtn = document.getElementById('copyShortcutBtn');
-const copyTotpBtn = document.getElementById('copyTotpBtn');
-const recentSecrets = document.getElementById('recentSecrets');
+const qrContainer = document.getElementById('qrContainer');
 
 const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -46,9 +45,9 @@ async function hmacSha1(keyBytes, messageBytes) {
 }
 
 // Generate TOTP
-async function generateTOTP(hexSecret) {
+async function generateTOTP(hexSecret, timeOffset = 0) {
     const keyBytes = new Uint8Array(hexSecret.match(/.{2}/g).map(byte => parseInt(byte, 16)));
-    let time = Math.floor(Date.now() / 30000);
+    let time = Math.floor(Date.now() / 30000) + timeOffset;
     const timeBytes = new Uint8Array(8);
     for (let i = 7; i >= 0; i--) {
         timeBytes[i] = time & 0xff;
@@ -64,6 +63,10 @@ async function generateTOTP(hexSecret) {
         (hmacResult[offset + 3] & 0xff);
     const otp = binary % 1000000;
     return otp.toString().padStart(6, '0');
+}
+
+function formatCode(code) {
+    return code.slice(0, 3) + ' ' + code.slice(3);
 }
 
 // Start timer updates
@@ -85,7 +88,11 @@ async function updateCode() {
     if (!hexSecret) return;
     try {
         const code = await generateTOTP(hexSecret);
-        codeEl.textContent = code;
+        codeEl.textContent = formatCode(code);
+        
+        const nextCode = await generateTOTP(hexSecret, 1);
+        nextCodeEl.textContent = nextCode; // keep next code without space for UI
+        
         hideError();
     } catch (e) {
         showError('Error generating code. Check console.');
@@ -95,16 +102,11 @@ async function updateCode() {
 
 // Copy current TOTP
 async function copyTOTP() {
-    const code = codeEl.textContent;
+    const code = codeEl.textContent.replace(/\s/g, '');
     if (!code || code === '------') return;
     try {
         await navigator.clipboard.writeText(code);
-        copyTotpBtn.textContent = '✅ Copied!';
-        copyTotpBtn.classList.add('copied');
-        setTimeout(() => {
-            copyTotpBtn.textContent = '📋 Copy TOTP';
-            copyTotpBtn.classList.remove('copied');
-        }, 1500);
+        showCopiedState();
     } catch (e) {
         const textarea = document.createElement('textarea');
         textarea.value = code;
@@ -114,25 +116,28 @@ async function copyTOTP() {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        copyTotpBtn.textContent = '✅ Copied!';
-        setTimeout(() => {
-            copyTotpBtn.textContent = '📋 Copy TOTP';
-        }, 1500);
+        showCopiedState();
     }
 }
 
-// Copy shortcut URL (now uses /2fa/ prefix)
+function showCopiedState() {
+    totpBox.classList.add('copied');
+    copyTooltip.textContent = 'Copied!';
+    copyTooltip.style.color = '#4f8';
+    setTimeout(() => {
+        totpBox.classList.remove('copied');
+        copyTooltip.textContent = 'Click to copy';
+        copyTooltip.style.color = '#888';
+    }, 1500);
+}
+
+// Copy shortcut URL
 async function copyShortcut() {
     if (!currentSecret) return;
     const url = `${window.location.origin}/2fa/${currentSecret}`;
     try {
         await navigator.clipboard.writeText(url);
-        copyShortcutBtn.textContent = 'Copied!';
-        copyShortcutBtn.classList.add('copied');
-        setTimeout(() => {
-            copyShortcutBtn.textContent = 'Copy';
-            copyShortcutBtn.classList.remove('copied');
-        }, 1500);
+        alert('Link copied to clipboard!');
     } catch (e) {
         const textarea = document.createElement('textarea');
         textarea.value = url;
@@ -142,14 +147,11 @@ async function copyShortcut() {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        copyShortcutBtn.textContent = 'Copied!';
-        setTimeout(() => {
-            copyShortcutBtn.textContent = 'Copy';
-        }, 1500);
+        alert('Link copied to clipboard!');
     }
 }
 
-// Extract secret from URL path, accounting for /2fa/ prefix
+// Extract secret from URL path
 function getSecretFromPath() {
     let path = window.location.pathname.replace(/^\/|\/$/g, '');
     if (path.toLowerCase().startsWith('2fa/')) {
@@ -174,30 +176,16 @@ async function initSecret(secret) {
         hexSecret = base32ToHex(cleaned);
         currentSecret = cleaned;
 
-        currentSecretEl.textContent = cleaned;
-        shortcutUrl.textContent = `${window.location.origin}/2fa/${cleaned}`;
         displayArea.classList.remove('hidden');
-        copyTotpBtn.textContent = '📋 Copy TOTP';
 
         await updateCode();
         startUpdates();
         hideError();
-        saveToRecent(cleaned);
         secretInput.value = cleaned;
     } catch (e) {
         showError(e.message);
-        throw e;
+        displayArea.classList.add('hidden');
     }
-}
-
-// Generate from input
-async function generateFromInput() {
-    const secret = secretInput.value.trim();
-    if (!secret) {
-        showError('Please enter a secret code');
-        return;
-    }
-    await initSecret(secret);
 }
 
 // Clear input
@@ -210,30 +198,11 @@ function clearInput() {
     hideError();
 }
 
-// Recent secrets (localStorage, per user)
-function saveToRecent(secret) {
-    let recent = JSON.parse(localStorage.getItem('totp_recent') || '[]');
-    recent = recent.filter(s => s !== secret);
-    recent.unshift(secret);
-    recent = recent.slice(0, 5);
-    localStorage.setItem('totp_recent', JSON.stringify(recent));
-    renderRecentSecrets();
-}
-
-function renderRecentSecrets() {
-    const recent = JSON.parse(localStorage.getItem('totp_recent') || '[]');
-    if (recent.length === 0) {
-        recentSecrets.style.display = 'none';
-        return;
+function toggleQR() {
+    qrContainer.classList.toggle('hidden');
+    if (!qrContainer.classList.contains('hidden') && currentSecret) {
+        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/Temp2FA?secret=${currentSecret}" alt="QR Code" style="border-radius: 8px; border: 4px solid #fff;">`;
     }
-    recentSecrets.style.display = 'block';
-    recentSecrets.innerHTML = '<div class="divider">Recent Secrets</div>' +
-        recent.map(s => `
-          <div class="recent-item">
-            <code>${s}</code>
-            <button class="btn-copy" onclick="initSecret('${s}')">Use</button>
-          </div>
-        `).join('');
 }
 
 function showError(msg) {
@@ -246,18 +215,22 @@ function hideError() {
 }
 
 // Event listeners
-secretInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') generateFromInput();
-});
-
-secretInput.addEventListener('input', (e) => {
-    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z2-7]/g, '');
+secretInput.addEventListener('input', async (e) => {
+    let val = e.target.value.toUpperCase().replace(/[^A-Z2-7]/g, '');
+    e.target.value = val;
+    
+    if (val.length >= 16) {
+        await initSecret(val);
+    } else {
+        displayArea.classList.add('hidden');
+        if (updateInterval) clearInterval(updateInterval);
+    }
 });
 
 // Check URL on load
 function checkURLSecret() {
-    const secret = getSecretFromPath();
-    if (secret && /^[A-Z2-7]+$/i.test(secret)) {
+    const secret = getSecretFromPath() || secretInput.value;
+    if (secret && /^[A-Z2-7]+$/i.test(secret) && secret.length >= 16) {
         initSecret(secret);
     }
 }
@@ -271,17 +244,12 @@ window.addEventListener('popstate', () => {
     }
 });
 
-// Expose initSecret ke window agar onclick dari recent secrets work
 window.initSecret = initSecret;
 window.clearInput = clearInput;
-window.generateFromInput = generateFromInput;
 window.copyTOTP = copyTOTP;
 window.copyShortcut = copyShortcut;
+window.toggleQR = toggleQR;
 
-// Initial setup
-renderRecentSecrets();
-
-// Pastikan auto-generate jalan setelah DOM siap
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', checkURLSecret);
 } else {

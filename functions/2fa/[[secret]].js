@@ -10,50 +10,43 @@ export async function onRequest(context) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Temporary 2FA Manager</title>
+  <title>2FA Code Generator</title>
   <link rel="stylesheet" type="text/css" href="/assets/2fa/style.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>2FA Generator</h1>
-      <p>One-time password generator for temporary accounts</p>
+      <h1>2FA Code Generator</h1>
     </div>
 
     <div class="input-group">
-      <label for="secretInput">Enter Secret Code</label>
       <div class="input-wrapper">
-        <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" maxlength="64" autocomplete="off" value="${safeSecret}">
-        <button class="btn" onclick="clearInput()">Clear</button>
+        <input type="text" id="secretInput" placeholder="ENTER SECRET CODE" autocomplete="off" value="${safeSecret}">
+        <span class="icon-link" onclick="copyShortcut()" title="Copy Link">🔗</span>
       </div>
-      <button class="btn primary" onclick="generateFromInput()">
-        Generate TOTP
-      </button>
     </div>
 
-    <div id="recentSecrets" class="recent-list" style="display:none;"></div>
-
     <div id="displayArea" class="display-area hidden">
-      <div class="code" id="totp">------</div>
-      <div class="timer-row">
-        <span class="timer-text">Refreshes in</span>
-        <span class="timer-seconds" id="seconds">30</span>
-        <span class="timer-text">s</span>
+      <div class="totp-box" id="totpBox" onclick="copyTOTP()">
+        <div class="code" id="totp">--- ---</div>
       </div>
+      <div class="tooltip" id="copyTooltip">Click to copy</div>
+      
       <div class="timer-bar">
         <div class="timer-bar-fill" id="bar"></div>
       </div>
+      
+      <div class="next-code-info">
+        Next code <span id="nextCode">------</span> in <span id="seconds">30</span> sec
+      </div>
 
       <div class="action-buttons">
-        <button class="btn small" id="copyTotpBtn" onclick="copyTOTP()">📋 Copy TOTP</button>
+        <button class="btn small" id="qrBtn" onclick="toggleQR()">
+          <span class="qr-icon">qr_code_2</span> Show QR
+        </button>
       </div>
-
-      <div class="shortcut-link">
-        <span id="shortcutUrl">-</span>
-        <button class="btn-copy" onclick="copyShortcut()" id="copyShortcutBtn">Copy Shortcut</button>
-      </div>
-      <div class="account-info">
-        Secret: <span id="currentSecret">-</span>
+      <div id="qrContainer" class="qr-container hidden">
+         <!-- QR Code will be rendered here if implemented -->
       </div>
     </div>
 
