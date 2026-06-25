@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Streamer</title>
-    <link rel="stylesheet" type="text/css" href="/assets/2fa/style.css?v=2">
+    <link rel="stylesheet" type="text/css" href="/assets/2fa/style.css">
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <style>
         /* Player and specific TV styles */
@@ -168,8 +168,12 @@
             <div class="default-playlists">
                 <button class="default-btn" onclick="loadDefaultPlaylist('https://boladong.live/hls/master.m3u8')">Piala
                     Dunia CH1</button>
-                <button class="default-btn" onclick="loadDefaultPlaylist('placeholder2.m3u8')">Playlist 2</button>
-                <button class="default-btn" onclick="loadDefaultPlaylist('placeholder3.m3u8')">Playlist 3</button>
+                <button class="default-btn"
+                    onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/index.m3u')">Playlist IPTV
+                    Global</button>
+                <button class="default-btn"
+                    onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/countries/id.m3u')">Playlist IPTV
+                    Indonesia</button>
             </div>
         </div>
 
@@ -294,17 +298,11 @@
             }
         }
 
-        async function loadInput() {
+        async function loadUrl(url) {
             hideError();
-            const val = streamInput.value.trim();
-            if (!val) {
-                showError('Please enter a URL');
-                return;
-            }
-
             try {
                 // First try to fetch to see if it's an IPTV playlist
-                const res = await fetch(val);
+                const res = await fetch(url);
                 const text = await res.text();
                 if (text.includes('#EXTINF')) {
                     handlePlaylistContent(text);
@@ -318,12 +316,20 @@
             allChannels = [];
             searchWrapper.classList.add('hidden');
             channelList.innerHTML = '';
-            playStream(val, 'Custom Stream');
+            playStream(url, 'Custom Stream');
+        }
+
+        async function loadInput() {
+            const val = streamInput.value.trim();
+            if (!val) {
+                showError('Please enter a URL');
+                return;
+            }
+            await loadUrl(val);
         }
 
         function loadDefaultPlaylist(url) {
-            streamInput.value = url;
-            loadInput();
+            loadUrl(url);
         }
 
         channelSearch.addEventListener('input', (e) => {
