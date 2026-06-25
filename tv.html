@@ -158,40 +158,47 @@
             <h1>TV Streamer</h1>
         </div>
 
-        <div class="input-group">
+        <!-- 1. Video Player Section -->
+        <div id="playerArea" class="display-area hidden">
+            <div class="now-playing" id="nowPlaying">NO STREAM</div>
+            <div class="player-wrapper">
+                <video id="my-video" class="video-js vjs-fluid vjs-big-play-centered" controls preload="auto"
+                    playsinline></video>
+            </div>
+        </div>
+
+        <!-- 2. Button Default Playlist -->
+        <div class="default-playlists" style="margin-bottom: 1.5rem;">
+            <button class="default-btn" onclick="loadDefaultPlaylist('https://boladong.live/hls/master.m3u8')">Piala
+                Dunia CH1</button>
+            <button class="default-btn"
+                onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/index.m3u')">Playlist IPTV
+                Global</button>
+            <button class="default-btn"
+                onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/countries/id.m3u')">Playlist IPTV
+                Indonesia</button>
+        </div>
+
+        <!-- 3. Form Custom Playlist -->
+        <div class="input-group" style="margin-bottom: 1.5rem;">
             <div class="input-wrapper">
                 <input type="text" id="streamInput" placeholder="ENTER M3U8 STREAM OR PLAYLIST URL" autocomplete="off">
                 <label for="fileInput" class="icon-link upload-icon" title="Upload M3U File">📁</label>
                 <input type="file" id="fileInput" accept=".m3u,.m3u8" style="display: none;">
                 <span class="icon-link" onclick="loadInput()" title="Play/Load">▶️</span>
             </div>
-            <div class="default-playlists">
-                <button class="default-btn" onclick="loadDefaultPlaylist('https://boladong.live/hls/master.m3u8')">Piala
-                    Dunia CH1</button>
-                <button class="default-btn"
-                    onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/index.m3u')">Playlist IPTV
-                    Global</button>
-                <button class="default-btn"
-                    onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/countries/id.m3u')">Playlist IPTV
-                    Indonesia</button>
-            </div>
         </div>
 
-        <div id="displayArea" class="display-area hidden">
-            <div class="now-playing" id="nowPlaying">NO STREAM</div>
-            <div class="player-wrapper">
-                <video id="my-video" class="video-js vjs-fluid vjs-big-play-centered" controls preload="auto"
-                    playsinline></video>
-            </div>
+        <div id="errorMessage" class="error-message"></div>
 
+        <!-- 4. Playlist Below Form -->
+        <div id="playlistArea" class="display-area hidden">
             <div class="search-wrapper hidden" id="searchWrapper">
                 <input type="text" id="channelSearch" placeholder="Search channels..." autocomplete="off">
             </div>
 
             <div id="channelList" class="channel-list"></div>
         </div>
-
-        <div id="errorMessage" class="error-message"></div>
     </div>
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
@@ -202,7 +209,8 @@
         let allChannels = [];
         const streamInput = document.getElementById('streamInput');
         const fileInput = document.getElementById('fileInput');
-        const displayArea = document.getElementById('displayArea');
+        const playerArea = document.getElementById('playerArea');
+        const playlistArea = document.getElementById('playlistArea');
         const channelList = document.getElementById('channelList');
         const nowPlaying = document.getElementById('nowPlaying');
         const errorEl = document.getElementById('errorMessage');
@@ -230,7 +238,7 @@
         function playStream(url, name) {
             initPlayer();
             hideError();
-            displayArea.classList.remove('hidden');
+            playerArea.classList.remove('hidden');
             nowPlaying.textContent = name;
 
             player.src({
@@ -264,7 +272,7 @@
                 };
                 channelList.appendChild(btn);
             });
-            displayArea.classList.remove('hidden');
+            playlistArea.classList.remove('hidden');
         }
 
         function handlePlaylistContent(text) {
@@ -316,6 +324,7 @@
             allChannels = [];
             searchWrapper.classList.add('hidden');
             channelList.innerHTML = '';
+            playlistArea.classList.add('hidden');
             playStream(url, 'Custom Stream');
         }
 
