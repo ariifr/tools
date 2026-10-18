@@ -5,161 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV Streamer</title>
-    <link rel="stylesheet" type="text/css" href="/assets/2fa/style.css">
+    <link rel="stylesheet" type="text/css" href="assets/ui.css">
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    <style>
-        /* Player and specific TV styles */
-        .container {
-            max-width: 800px;
-        }
-
-        .player-wrapper {
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #333;
-            background: #000;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .channel-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.5rem;
-            margin-top: 1.5rem;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 0.5rem;
-            text-align: left;
-        }
-
-        .channel-item {
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 0.75rem;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        .channel-item:hover {
-            border-color: #666;
-            color: #fff;
-        }
-
-        .channel-item.active {
-            border-color: #e57373;
-            color: #fff;
-            background: rgba(229, 115, 115, 0.1);
-        }
-
-        .channel-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .channel-list::-webkit-scrollbar-track {
-            background: #111;
-            border-radius: 3px;
-        }
-
-        .channel-list::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 3px;
-        }
-
-        .channel-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .now-playing {
-            color: #e57373;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.1rem;
-        }
-
-        .icon-link.upload-icon {
-            right: 3.5rem;
-        }
-
-        .video-js .vjs-big-play-button {
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            width: 64px;
-            height: 64px;
-            line-height: 60px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .video-js:hover .vjs-big-play-button {
-            background-color: #e57373;
-            border-color: #e57373;
-        }
-
-        .default-playlists {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .default-btn {
-            background: #222;
-            border: 1px solid #444;
-            color: #ddd;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .default-btn:hover {
-            background: #333;
-            border-color: #e57373;
-            color: #fff;
-        }
-
-        .search-wrapper.hidden {
-            display: none;
-        }
-
-        .search-wrapper {
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .search-wrapper input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 4px;
-            border: 1px solid #333;
-            background: #111;
-            color: #fff;
-            box-sizing: border-box;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="assets/tv/tv.css">
 </head>
 
 <body>
+    <svg class="icon-sprite" aria-hidden="true">
+        <symbol id="i-upload" viewBox="0 0 24 24">
+            <path d="M12 16V4M7.5 8.5 12 4l4.5 4.5" />
+            <path d="M4 16v4h16v-4" />
+        </symbol>
+        <symbol id="i-play" viewBox="0 0 24 24">
+            <path d="M8 5.5 19 12 8 18.5z" />
+        </symbol>
+    </svg>
+
     <div class="container">
         <div class="header">
+            <p class="kicker">M3U8 / HLS Player</p>
             <h1>TV Streamer</h1>
         </div>
 
         <!-- 1. Video Player Section -->
-        <div id="playerArea" class="display-area hidden">
+        <div id="playerArea" class="hidden">
             <div class="now-playing" id="nowPlaying">NO STREAM</div>
             <div class="player-wrapper">
                 <video id="my-video" class="video-js vjs-fluid vjs-big-play-centered" controls preload="auto"
@@ -168,9 +37,7 @@
         </div>
 
         <!-- 2. Button Default Playlist -->
-        <div class="default-playlists" style="margin-bottom: 1.5rem;">
-            <button class="default-btn" onclick="loadDefaultPlaylist('https://boladong.live/hls/master.m3u8')">Piala
-                Dunia CH1</button>
+        <div class="default-playlists">
             <button class="default-btn"
                 onclick="loadDefaultPlaylist('https://iptv-org.github.io/iptv/index.m3u')">Playlist IPTV
                 Global</button>
@@ -180,19 +47,28 @@
         </div>
 
         <!-- 3. Form Custom Playlist -->
-        <div class="input-group" style="margin-bottom: 1.5rem;">
+        <div class="input-group">
             <div class="input-wrapper">
-                <input type="text" id="streamInput" placeholder="ENTER M3U8 STREAM OR PLAYLIST URL" autocomplete="off">
-                <label for="fileInput" class="icon-link upload-icon" title="Upload M3U File">📁</label>
-                <input type="file" id="fileInput" accept=".m3u,.m3u8" style="display: none;">
-                <span class="icon-link" onclick="loadInput()" title="Play/Load">▶️</span>
+                <input type="text" id="streamInput" placeholder="Enter M3U8 stream or playlist URL"
+                    autocomplete="off">
+                <div class="input-actions">
+                    <label for="fileInput" class="icon-btn" title="Upload an M3U file"
+                        aria-label="Upload an M3U file">
+                        <svg class="icon" aria-hidden="true"><use href="#i-upload" /></svg>
+                    </label>
+                    <input type="file" id="fileInput" accept=".m3u,.m3u8" style="display: none;">
+                    <button type="button" class="icon-btn" onclick="loadInput()" title="Play / load"
+                        aria-label="Play / load">
+                        <svg class="icon" aria-hidden="true"><use href="#i-play" /></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
 
         <!-- 4. Playlist Below Form -->
-        <div id="playlistArea" class="display-area hidden">
+        <div id="playlistArea" class="hidden">
             <div class="search-wrapper hidden" id="searchWrapper">
                 <input type="text" id="channelSearch" placeholder="Search channels..." autocomplete="off">
             </div>
@@ -368,6 +244,12 @@
             // reset file input
             fileInput.value = '';
         });
+
+        // Automatically load and play the first default playlist on page load
+        const firstDefaultBtn = document.querySelector('.default-btn');
+        if (firstDefaultBtn) {
+            firstDefaultBtn.click();
+        }
 
     </script>
 </body>

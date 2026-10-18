@@ -1,0 +1,154 @@
+/* ==========================================================================
+   assets/tv/tv.css — TV Streamer page.
+   Depends on /assets/ui.css for tokens and shared primitives.
+   ========================================================================== */
+
+.container {
+    max-width: 820px;
+}
+
+/* ------------------------------------------------------------------- player */
+
+.player-wrapper {
+    margin-bottom: 1.25rem;
+    background: #000;
+    border: var(--bd) solid var(--line);
+}
+
+.now-playing {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+}
+
+.now-playing::before {
+    content: "";
+    flex: none;
+    width: 9px;
+    height: 9px;
+    background: var(--accent);
+}
+
+/* --------------------------------------------------------- default playlists */
+
+.default-playlists {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ------------------------------------------------------------- stream input */
+
+.input-wrapper input {
+    padding-right: 6rem;
+}
+
+/* -------------------------------------------------------------- channel grid */
+
+.search-wrapper {
+    margin-top: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.channel-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 0.4rem;
+}
+
+.channel-item {
+    padding: 0.7rem 0.75rem;
+    background: var(--panel);
+    border: var(--bd) solid var(--line);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color var(--speed) linear, background var(--speed) linear,
+        border-color var(--speed) linear;
+}
+
+.channel-item:hover {
+    color: var(--ink);
+    border-color: var(--line-2);
+}
+
+.channel-item.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+}
+
+.channel-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.channel-list::-webkit-scrollbar-track {
+    background: var(--panel-2);
+}
+
+.channel-list::-webkit-scrollbar-thumb {
+    background: var(--line-2);
+}
+
+.channel-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* -------------------------------------------------------- video.js theming */
+
+.video-js {
+    font-family: var(--mono);
+    color: var(--accent);
+}
+
+.video-js .vjs-control-bar {
+    background-color: rgba(12, 12, 14, 0.9);
+}
+
+.video-js .vjs-slider {
+    background-color: rgba(234, 234, 229, 0.2);
+}
+
+.video-js .vjs-play-progress,
+.video-js .vjs-volume-level {
+    background-color: var(--accent);
+}
+
+.video-js .vjs-big-play-centered .vjs-big-play-button,
+.video-js .vjs-big-play-button {
+    top: 50%;
+    left: 50%;
+    width: 72px;
+    height: 54px;
+    margin: -27px 0 0 -36px;
+    line-height: 50px;
+    font-size: 1.4rem;
+    border: var(--bd) solid var(--accent);
+    border-radius: 0;
+    background-color: rgba(12, 12, 14, 0.7);
+    color: var(--accent);
+    transition: background-color var(--speed) linear, color var(--speed) linear;
+}
+
+.video-js:hover .vjs-big-play-button,
+.video-js .vjs-big-play-button:focus {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}

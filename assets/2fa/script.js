@@ -123,11 +123,11 @@ async function copyTOTP() {
 function showCopiedState() {
     totpBox.classList.add('copied');
     copyTooltip.textContent = 'Copied!';
-    copyTooltip.style.color = '#4f8';
+    copyTooltip.classList.add('is-copied');
     setTimeout(() => {
         totpBox.classList.remove('copied');
         copyTooltip.textContent = 'Click to copy';
-        copyTooltip.style.color = '#888';
+        copyTooltip.classList.remove('is-copied');
     }, 1500);
 }
 
@@ -201,7 +201,7 @@ function clearInput() {
 function toggleQR() {
     qrContainer.classList.toggle('hidden');
     if (!qrContainer.classList.contains('hidden') && currentSecret) {
-        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/Temp2FA?secret=${currentSecret}" alt="QR Code" style="border-radius: 8px; border: 4px solid #fff;">`;
+        qrContainer.innerHTML = `<img class="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/Temp2FA?secret=${currentSecret}" alt="QR Code" width="150" height="150">`;
     }
 }
 

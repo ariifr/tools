@@ -1,151 +1,94 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+/* ==========================================================================
+   assets/2fa/style.css — Temporary 2FA / TOTP page.
+   Depends on /assets/ui.css for tokens and shared primitives.
+   ========================================================================== */
 
-body {
-    font-family: system-ui, -apple-system, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    background: #1e1e1e;
-    color: #e0e0e0;
-    padding: 1rem;
-}
-
-.container {
-    width: 100%;
-    max-width: 500px;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.header h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #f0f0f0;
-    letter-spacing: 0.05rem;
-}
-
-.input-group {
-    margin-bottom: 1.5rem;
-}
-
-.input-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.input-wrapper input {
-    width: 100%;
-    padding: 1rem 3rem 1rem 1rem;
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 1rem;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.1rem;
-    transition: all 0.3s ease;
+/* Secret input: wide tracking so the base32 secret reads like a code plate. */
+.app-2fa .input-wrapper input {
+    padding-right: 3.8rem;
     text-align: center;
     text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 1rem;
 }
 
-.input-wrapper input:focus {
-    outline: none;
-    border-color: #666;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+.app-2fa .input-wrapper input::placeholder {
+    letter-spacing: 0.14em;
 }
 
-.input-wrapper input::placeholder {
-    color: #555;
-    letter-spacing: normal;
-    font-family: system-ui;
-}
-
-.icon-link {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #888;
-    transition: color 0.2s;
-    font-size: 1.2rem;
-}
-
-.icon-link:hover {
-    color: #fff;
-}
-
-.display-area {
-    text-align: center;
-}
-
-.display-area.hidden {
-    display: none;
-}
+/* ------------------------------------------------------------ code display */
 
 .totp-box {
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 1.2rem;
-    margin-bottom: 0.5rem;
+    position: relative;
+    padding: 1.6rem 1rem;
+    background: var(--well);
+    border: var(--bd) solid var(--line);
     cursor: pointer;
-    background: #111;
-    transition: all 0.3s ease;
+    transition: transform var(--speed) linear, box-shadow var(--speed) linear,
+        border-color var(--speed) linear;
 }
 
 .totp-box:hover {
-    border-color: #666;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    transform: var(--lift);
+    border-color: var(--accent);
+    box-shadow: var(--stamp-accent);
 }
 
 .totp-box.copied {
-    border-color: #4f8;
-    box-shadow: 0 0 15px rgba(68, 255, 136, 0.2);
+    border-color: var(--ok);
+    box-shadow: 4px 4px 0 var(--ok);
 }
 
 .code {
-    font-size: 2.2rem;
-    letter-spacing: 0.5rem;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    color: #e0e0e0;
+    font-family: var(--mono);
+    font-size: clamp(1.85rem, 9vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: 0.34em;
+    text-indent: 0.34em; /* balances the trailing letter-space so it stays centred */
+    color: var(--ink);
+    text-align: center;
 }
 
 .tooltip {
-    font-size: 0.85rem;
-    color: #888;
-    margin-bottom: 1.5rem;
+    margin-top: 0.7rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
 }
 
+.tooltip.is-copied {
+    color: var(--ok);
+}
+
+/* ---------------------------------------------------------------- countdown */
+
 .timer-bar {
-    width: 60%;
-    margin: 0 auto;
-    height: 6px;
-    background: #333;
-    border-radius: 3px;
+    height: 10px;
+    margin: 1.5rem auto 0.9rem;
+    background: var(--panel-2);
+    border: var(--bd) solid var(--line);
     overflow: hidden;
-    margin-bottom: 1rem;
 }
 
 .timer-bar-fill {
+    width: 0;
     height: 100%;
-    background: #e57373; /* Reddish pink from image */
+    background: var(--accent);
     transition: width 1s linear;
 }
 
 .next-code-info {
-    font-size: 0.85rem;
-    color: #aaa;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.4rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+}
+
+.next-code-info span {
+    color: var(--ink);
 }
 
 .action-buttons {
@@ -153,51 +96,17 @@ body {
     justify-content: center;
 }
 
-.btn {
-    padding: 0.75rem 1.5rem;
-    background: transparent;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: color 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn:hover {
-    color: #fff;
-}
-
-.btn.small {
-    font-size: 0.85rem;
-}
-
-.error-message {
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    color: #f66;
-    font-size: 0.875rem;
-    margin-top: 1rem;
-    text-align: center;
-    display: none;
-}
-
-.error-message.show {
-    display: block;
-}
+/* ------------------------------------------------------------------- QR tab */
 
 .qr-container {
-    margin-top: 1rem;
+    margin-top: 1.25rem;
+    text-align: center;
 }
 
-@media (max-width: 500px) {
-    .code {
-        font-size: 1.8rem;
-        letter-spacing: 0.3rem;
-    }
+.qr-image {
+    width: 150px;
+    height: 150px;
+    padding: 8px;
+    background: #fff;
+    border: var(--bd) solid var(--line);
 }

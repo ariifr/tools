@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRIS Parser & Dynamic Generator — Developer Tools</title>
+  <meta name="description" content="Tool offline dan client-side untuk mem-parsing QRIS EMVCo, melihat info merchant, NMID, MPAN, serta mengubah nominal QRIS menjadi QRIS dinamis.">
+  <link rel="stylesheet" type="text/css" href="./assets/ui.css">
+  
+  <!-- Standalone Vendor Libraries with CDN fallbacks -->
+  <script src="./assets/qris/vendor/jsqr.js"></script>
+  <script>
+    if (typeof jsQR === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"><\/script>');
+    }
+  </script>
+  <script src="./assets/qris/vendor/qrcode.js"></script>
+  <script>
+    if (typeof qrcode === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');
+    }
+  </script>
+  <!-- Standalone QRIS Bundle -->
+  <script src="./assets/qris/qris.bundle.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="./assets/qris/qris.css">
+</head>
+<body>
+
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-card" viewBox="0 0 24 24">
+      <rect x="2.5" y="5" width="19" height="14" />
+      <path d="M2.5 9.5h19M6 14.5h4" />
+    </symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24">
+      <path d="M3.5 8.5v-5h5M15.5 3.5h5v5M20.5 15.5v5h-5M8.5 20.5h-5v-5" />
+      <path d="M3.5 12h17" />
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7v5.5l3.5 2" />
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3.5 22 20.5H2z" />
+      <path d="M12 9.5v5M12 17.4v.01" />
+    </symbol>
+    <symbol id="i-store" viewBox="0 0 24 24">
+      <path d="M4 9.5V20h16V9.5" />
+      <path d="M2.5 9.5 5 3.5h14l2.5 6" />
+      <path d="M9.5 20v-5.5h5V20" />
+    </symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24">
+      <path d="M13.5 2.5 5 13.5h6L10.5 21.5 19 10.5h-6z" />
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect x="9" y="9" width="11.5" height="11.5" />
+      <path d="M15 4.5H4.5V15" />
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 4v11.5M7.5 11 12 15.5 16.5 11" />
+      <path d="M4 16v4h16v-4" />
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M15.5 15.5 21 21" />
+    </symbol>
+  </svg>
+
+  <div class="qris-container">
+    <div class="nav-header">
+      <a href="./index.html" class="back-link" id="btnBack">← Kembali ke Beranda</a>
+      <span class="label">100% Client-Side &amp; Offline</span>
+    </div>
+
+    <h1 class="page-title with-icon">
+      <svg class="icon" aria-hidden="true"><use href="#i-card" /></svg>
+      QRIS Parser &amp; Generator
+    </h1>
+    <p class="page-subtitle">Analisis informasi merchant, validasi checksum EMVCo CRC-16, dan ubah QRIS statis menjadi dinamis.</p>
+
+    <!-- INPUT CARD -->
+    <div class="card">
+      <div class="card-title">
+        <span>Input Data QRIS</span>
+      </div>
+
+      <div class="quick-samples">
+        <span class="label">Contoh pengujian:</span>
+        <button type="button" class="btn-sample" id="btnSampleStatic">Contoh Statis</button>
+        <button type="button" class="btn-sample" id="btnSampleDynamic">Contoh Dinamis</button>
+        <button type="button" class="btn-sample" id="btnClear">Bersihkan</button>
+      </div>
+
+      <!-- Dropzone for QR image -->
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" title="Pilih gambar QR code">
+        <span class="dropzone-icon" id="dropzoneIcon">
+          <svg class="icon" aria-hidden="true"><use href="#i-scan" /></svg>
+          <svg class="icon icon-busy" aria-hidden="true"><use href="#i-clock" /></svg>
+        </span>
+        <div class="dropzone-text" id="dropzoneText">
+          Tarik &amp; letakkan foto QR code di sini, atau <span class="dropzone-browse">pilih file</span>
+        </div>
+        <div class="label">Mendukung PNG, JPG, JPEG, WEBP</div>
+      </div>
+
+      <!-- Raw String Input -->
+      <div class="textarea-wrapper">
+        <textarea id="rawPayloadInput" class="qris-textarea" placeholder="Atau paste raw payload string QRIS (000201...) di sini..."></textarea>
+      </div>
+
+      <div id="errorBanner" class="status-banner" style="display: none;">
+        <span id="errorIcon">
+          <svg class="icon icon-when-error" aria-hidden="true"><use href="#i-alert" /></svg>
+          <svg class="icon icon-when-warning" aria-hidden="true"><use href="#i-clock" /></svg>
+        </span>
+        <span id="errorMessage"></span>
+      </div>
+    </div>
+
+    <!-- PARSED RESULTS SECTION -->
+    <div id="parsedSection">
+      <!-- Merchant Card -->
+      <div class="card">
+        <div class="card-title">
+          <span class="with-icon">
+            <svg class="icon icon--tight" aria-hidden="true"><use href="#i-store" /></svg>
+            Informasi Merchant
+          </span>
+          <div id="headerBadges" style="display: flex; gap: 0.5rem; align-items: center;"></div>
+        </div>
+
+        <div class="merchant-grid">
+          <div class="info-item">
+            <div class="info-label">Nama Merchant</div>
+            <div class="info-value" id="valMerchantName">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Kota / Lokasi</div>
+            <div class="info-value" id="valMerchantCity">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">National Merchant ID (NMID)</div>
+            <div class="info-value mono" id="valNMID">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Kategori Usaha (MCC)</div>
+            <div class="info-value" id="valMCC">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Kriteria Usaha</div>
+            <div class="info-value" id="valCriteria">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Merchant PAN (MPAN)</div>
+            <div class="info-value mono" id="valMPAN">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Acquirer / GUID</div>
+            <div class="info-value mono" id="valGUID">-</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Nominal Saat Ini</div>
+            <div class="info-value" id="valAmount">-</div>
+          </div>
+        </div>
+
+        <!-- DYNAMIC AMOUNT MODIFIER -->
+        <div class="generator-box">
+          <div class="info-label prompt with-icon">
+            <svg class="icon icon--tight" aria-hidden="true"><use href="#i-bolt" /></svg>
+            Konversi ke QRIS Dinamis (Ubah Nominal)
+          </div>
+          <div class="input-row">
+            <div class="amount-input-group">
+              <span class="amount-prefix">Rp</span>
+              <input type="number" id="customAmountInput" class="amount-input" placeholder="Masukkan nominal (contoh: 25000)" min="1" step="any">
+            </div>
+            <button type="button" class="btn-primary" id="btnBuildDynamic">
+              Generate QRIS Dinamis
+            </button>
+          </div>
+
+          <div id="dynamicOutput" class="dynamic-output">
+            <div class="qr-preview-row">
+              <div class="qr-canvas-wrapper">
+                <canvas id="qrCanvas"></canvas>
+              </div>
+              <div class="qr-meta">
+                <div class="info-label">String Payload Dinamis Baru:</div>
+                <textarea id="dynamicPayloadOutput" class="qris-textarea" style="min-height: 70px; margin-bottom: 0.75rem;" readonly></textarea>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  <button type="button" class="btn-secondary" id="btnCopyDynamic">
+                    <svg class="icon icon--tight" aria-hidden="true"><use href="#i-copy" /></svg>
+                    Salin Payload
+                  </button>
+                  <button type="button" class="btn-secondary" id="btnDownloadQR">
+                    <svg class="icon icon--tight" aria-hidden="true"><use href="#i-download" /></svg>
+                    Download QR (PNG)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TLV BREAKDOWN -->
+      <details class="tlv-details" id="tlvDetails">
+        <summary>
+          <span class="with-icon">
+            <svg class="icon icon--tight" aria-hidden="true"><use href="#i-search" /></svg>
+            Inspeksi Struktur Teknis TLV (Tag-Length-Value)
+          </span>
+        </summary>
+        <div class="tlv-table-wrapper">
+          <table class="tlv-table" id="tlvTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Tag</th>
+                <th style="width: 220px;">Deskripsi</th>
+                <th style="width: 60px;">Len</th>
+                <th>Nilai (Value)</th>
+              </tr>
+            </thead>
+            <tbody id="tlvTableBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Tersalin ke clipboard!</div>
+  <canvas id="hiddenScanCanvas" style="display: none;"></canvas>
+
+  <script>
+    (function () {
+      const SAMPLE_STATIC = '00020101021126600014ID.CO.QRIS.WWW0115ID1020023456789021993600915000000000015115ID10200234567895204581253033605802ID5916TOKO KOPI MAKMUR6013JAKARTA PUSAT61051011062220112INV-2024-0010702016304F5FF';
+      const SAMPLE_DYNAMIC = '00020101021226600014ID.CO.QRIS.WWW0115ID1020023456789021993600915000000000015115ID10200234567895204581253033605405250005802ID5916TOKO KOPI MAKMUR6013JAKARTA PUSAT6105101106304B8F5';
+
+      // DOM Elements
+      const rawPayloadInput = document.getElementById('rawPayloadInput');
+      const dropzone = document.getElementById('dropzone');
+      const dropzoneText = document.getElementById('dropzoneText');
+      const dropzoneIcon = document.getElementById('dropzoneIcon');
+      const fileInput = document.getElementById('fileInput');
+      const errorBanner = document.getElementById('errorBanner');
+      const errorMessage = document.getElementById('errorMessage');
+      const parsedSection = document.getElementById('parsedSection');
+      const headerBadges = document.getElementById('headerBadges');
+
+      const valMerchantName = document.getElementById('valMerchantName');
+      const valMerchantCity = document.getElementById('valMerchantCity');
+      const valNMID = document.getElementById('valNMID');
+      const valMCC = document.getElementById('valMCC');
+      const valCriteria = document.getElementById('valCriteria');
+      const valMPAN = document.getElementById('valMPAN');
+      const valGUID = document.getElementById('valGUID');
+      const valAmount = document.getElementById('valAmount');
+
+      const customAmountInput = document.getElementById('customAmountInput');
+      const btnBuildDynamic = document.getElementById('btnBuildDynamic');
+      const dynamicOutput = document.getElementById('dynamicOutput');
+      const dynamicPayloadOutput = document.getElementById('dynamicPayloadOutput');
+      const qrCanvas = document.getElementById('qrCanvas');
+      const btnCopyDynamic = document.getElementById('btnCopyDynamic');
+      const btnDownloadQR = document.getElementById('btnDownloadQR');
+      const tlvTableBody = document.getElementById('tlvTableBody');
+      const toast = document.getElementById('toast');
+      const hiddenScanCanvas = document.getElementById('hiddenScanCanvas');
+
+      let currentDecoded = null;
+
+      // Toast helper
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+        }, 2200);
+      }
+
+      function showError(msg) {
+        errorMessage.textContent = msg;
+        errorBanner.className = 'status-banner error show';
+        errorBanner.style.display = 'flex';
+        parsedSection.style.display = 'none';
+      }
+
+      function showNotice(msg) {
+        errorMessage.textContent = msg;
+        errorBanner.className = 'status-banner warning show';
+        errorBanner.style.display = 'flex';
+      }
+
+      function clearError() {
+        errorBanner.className = 'status-banner';
+        errorBanner.style.display = 'none';
+        errorMessage.textContent = '';
+      }
+
+      // Ensure clean state on page load
+      clearError();
+
+      function formatRupiah(numStr) {
+        const num = Number(numStr);
+        if (isNaN(num)) return numStr;
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(num);
+      }
+
+      function parseAndRender(rawText) {
+        const text = (rawText || '').trim();
+        if (!text) {
+          clearError();
+          parsedSection.style.display = 'none';
+          currentDecoded = null;
+          return;
+        }
+
+        if (!window.QRIS || typeof window.QRIS.decodeEMV !== 'function') {
+          showError('Pustaka parser QRIS belum siap dimuat.');
+          return;
+        }
+
+        try {
+          const decoded = window.QRIS.decodeEMV(text);
+          currentDecoded = decoded;
+          clearError();
+
+          // Badges
+          headerBadges.innerHTML = '';
+
+          // Dynamic / Static badge
+          const typeBadge = document.createElement('span');
+          typeBadge.className = 'badge ' + (decoded.isDynamic ? 'badge-dynamic' : 'badge-static');
+          typeBadge.textContent = decoded.isDynamic ? 'Dinamis' : 'Statis';
+          headerBadges.appendChild(typeBadge);
+
+          // CRC badge
+          const crcBadge = document.createElement('span');
+          if (decoded.crc.valid) {
+            crcBadge.className = 'badge badge-valid';
+            crcBadge.textContent = 'CRC Valid (' + decoded.crc.stored + ')';
+          } else {
+            crcBadge.className = 'badge badge-invalid';
+            crcBadge.textContent = 'CRC Mismatch (Stored: ' + (decoded.crc.stored || '-') + ', Calc: ' + decoded.crc.computed + ')';
+          }
+          headerBadges.appendChild(crcBadge);
+
+          // Populate merchant fields
+          valMerchantName.textContent = decoded.merchant.name || '(Tidak tercantum)';
+          valMerchantCity.textContent = [decoded.merchant.city, decoded.merchant.postal, decoded.merchant.country].filter(Boolean).join(', ') || '-';
+          valNMID.textContent = decoded.nmid || '-';
+          valMCC.textContent = decoded.mcc.code ? (decoded.mcc.name + ' (' + decoded.mcc.code + ')') : '-';
+
+          // Accounts info
+          const acc = decoded.accounts[0] || {};
+          valMPAN.textContent = acc.mpan || '-';
+          valGUID.textContent = acc.guid || '-';
+
+          const criteriaMap = {
+            'UMI': 'Usaha Mikro (UMI)',
+            'UME': 'Usaha Menengah (UME)',
+            'UKE': 'Usaha Kecil (UKE)',
+            'UBE': 'Usaha Besar (UBE)'
+          };
+          valCriteria.textContent = acc.criteria ? (criteriaMap[acc.criteria] || acc.criteria) : '-';
+
+          // Amount
+          if (decoded.amount) {
+            valAmount.textContent = formatRupiah(decoded.amount);
+          } else {
+            valAmount.textContent = decoded.isDynamic ? 'Rp 0' : 'Bebas (Statis)';
+          }
+
+          // Render TLV Table
+          renderTLVTable(decoded.entries);
+
+          parsedSection.style.display = 'block';
+          dynamicOutput.style.display = 'none';
+
+        } catch (err) {
+          console.error('QRIS parse error:', err);
+          showError('Gagal mem-parsing payload QRIS: ' + (err.message || 'Format tidak valid.'));
+        }
+      }
+
+      function renderTLVTable(entries) {
+        tlvTableBody.innerHTML = '';
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          const tr = document.createElement('tr');
+          const name = window.QRIS.tagName(entry.tag);
+          tr.innerHTML = 
+            '<td><span class="tag-badge">' + escapeHtml(entry.tag) + '</span></td>' +
+            '<td><strong>' + escapeHtml(name) + '</strong></td>' +
+            '<td>' + entry.length + '</td>' +
+            '<td class="mono" style="word-break: break-all;">' + escapeHtml(window.QRIS.tagValue(entry.tag, entry.value)) + '</td>';
+          tlvTableBody.appendChild(tr);
+
+          if (entry.children && entry.children.length > 0) {
+            for (let j = 0; j < entry.children.length; j++) {
+              const child = entry.children[j];
+              const childName = window.QRIS.tagName(child.tag, entry.tag);
+              const subTr = document.createElement('tr');
+              subTr.className = 'subtag-row';
+              subTr.innerHTML = 
+                '<td><span class="tag-badge sub">' + escapeHtml(child.tag) + '</span></td>' +
+                '<td class="tlv-child-name">└─ ' + escapeHtml(childName) + '</td>' +
+                '<td>' + child.length + '</td>' +
+                '<td class="mono tlv-child-value" style="word-break: break-all;">' + escapeHtml(child.value) + '</td>';
+              tlvTableBody.appendChild(subTr);
+            }
+          }
+        }
+      }
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Draw QR Code to Canvas with qrcode-generator
+      function drawQRToCanvas(text) {
+        if (typeof qrcode === 'undefined') {
+          throw new Error('Pustaka QRCode belum siap.');
+        }
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        const count = qr.getModuleCount();
+        const cellSize = 6;
+        const margin = 4;
+        const size = (count + margin * 2) * cellSize;
+
+        qrCanvas.width = size;
+        qrCanvas.height = size;
+        const ctx = qrCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#000000';
+
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect((c + margin) * cellSize, (r + margin) * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+      }
+
+      // Helper to read file as Image
+      function readFileToImage(file) {
+        return new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () { resolve(img); };
+            img.onerror = function (err) { reject(new Error('Gagal membaca gambar.')); };
+            img.src = e.target.result;
+          };
+          reader.onerror = function (err) { reject(err); };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Scan image with jsQR (handles high resolution downscaling)
+      function scanWithJsQR(img) {
+        if (typeof jsQR === 'undefined') return null;
+
+        const canvas = hiddenScanCanvas;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        // Pass 1: Scale down if large (e.g. >1200px)
+        const maxDim = 1200;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+        let imgData = ctx.getImageData(0, 0, w, h);
+        let res = jsQR(imgData.data, w, h, { inversionAttempts: 'attemptBoth' });
+        if (res && res.data) return res.data;
+
+        // Pass 2: Full resolution if scaled pass didn't find QR
+        if (w !== img.width || h !== img.height) {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          imgData = ctx.getImageData(0, 0, img.width, img.height);
+          res = jsQR(imgData.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+          if (res && res.data) return res.data;
+        }
+
+        return null;
+      }
+
+      // Process uploaded file
+      async function processImageFile(file) {
+        if (!file || !file.type.startsWith('image/')) {
+          showError('File yang dipilih bukan format gambar.');
+          return;
+        }
+
+        dropzoneIcon.classList.add('is-busy');
+        dropzoneText.innerHTML = '<strong>Memproses &amp; memindai QR code...</strong>';
+        showNotice('⏳ Memindai gambar QR code...');
+
+        try {
+          const img = await readFileToImage(file);
+          let qrCodeText = null;
+
+          // 1. Try native BarcodeDetector API if supported
+          if ('BarcodeDetector' in window) {
+            try {
+              const detector = new BarcodeDetector({ formats: ['qr_code'] });
+              const barcodes = await detector.detect(img);
+              if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                qrCodeText = barcodes[0].rawValue;
+              }
+            } catch (err) {
+              console.warn('BarcodeDetector error, fallback to jsQR:', err);
+            }
+          }
+
+          // 2. Fallback to jsQR
+          if (!qrCodeText) {
+            qrCodeText = scanWithJsQR(img);
+          }
+
+          if (qrCodeText) {
+            rawPayloadInput.value = qrCodeText;
+            parseAndRender(qrCodeText);
+            showToast('QR code berhasil dipindai');
+          } else {
+            showError('QR Code tidak terdeteksi pada gambar ini. Pastikan foto cukup jelas, memiliki kontras yang baik, atau crop gambar agar fokus pada kode QR.');
+          }
+        } catch (err) {
+          console.error('Scan error:', err);
+          showError('Gagal memproses gambar: ' + (err.message || 'Format tidak didukung.'));
+        } finally {
+          dropzoneIcon.classList.remove('is-busy');
+          dropzoneText.innerHTML = 'Tarik &amp; letakkan foto QR code di sini, atau <span class="dropzone-browse">pilih file</span>';
+          fileInput.value = '';
+        }
+      }
+
+      // Event Listeners
+      rawPayloadInput.addEventListener('input', function () {
+        parseAndRender(rawPayloadInput.value);
+      });
+      rawPayloadInput.addEventListener('paste', function () {
+        setTimeout(function () {
+          parseAndRender(rawPayloadInput.value);
+        }, 50);
+      });
+
+      // Sample buttons
+      document.getElementById('btnSampleStatic').addEventListener('click', function () {
+        rawPayloadInput.value = SAMPLE_STATIC;
+        parseAndRender(SAMPLE_STATIC);
+      });
+
+      document.getElementById('btnSampleDynamic').addEventListener('click', function () {
+        rawPayloadInput.value = SAMPLE_DYNAMIC;
+        parseAndRender(SAMPLE_DYNAMIC);
+      });
+
+      document.getElementById('btnClear').addEventListener('click', function () {
+        rawPayloadInput.value = '';
+        customAmountInput.value = '';
+        parseAndRender('');
+      });
+
+      // Drag and drop handlers
+      dropzone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', function () {
+        dropzone.classList.remove('dragover');
+      });
+
+      dropzone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          processImageFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', function (e) {
+        if (e.target.files && e.target.files.length > 0) {
+          processImageFile(e.target.files[0]);
+        }
+      });
+
+      // Dynamic builder
+      btnBuildDynamic.addEventListener('click', function () {
+        const amount = customAmountInput.value.trim();
+        if (!amount || isNaN(amount) || Number(amount) <= 0) {
+          alert('Masukkan nominal angka yang valid (lebih dari 0).');
+          customAmountInput.focus();
+          return;
+        }
+
+        if (!rawPayloadInput.value.trim()) {
+          alert('Silakan masukkan data QRIS dasar terlebih dahulu.');
+          return;
+        }
+
+        try {
+          const dynamicPayload = window.QRIS.buildQRIS(rawPayloadInput.value.trim(), amount);
+          dynamicPayloadOutput.value = dynamicPayload;
+
+          drawQRToCanvas(dynamicPayload);
+
+          dynamicOutput.style.display = 'block';
+          showToast('QRIS Dinamis berhasil dibuat!');
+        } catch (err) {
+          alert('Gagal membuat QRIS dinamis: ' + err.message);
+        }
+      });
+
+      btnCopyDynamic.addEventListener('click', function () {
+        if (!dynamicPayloadOutput.value) return;
+        navigator.clipboard.writeText(dynamicPayloadOutput.value).then(function () {
+          showToast('Payload baru disalin ke clipboard!');
+        });
+      });
+
+      btnDownloadQR.addEventListener('click', function () {
+        const dataUrl = qrCanvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        const merchant = (currentDecoded && currentDecoded.merchant && currentDecoded.merchant.name) ? currentDecoded.merchant.name.replace(/\s+/g, '_') : 'qris';
+        a.download = 'QRIS_' + merchant + '_' + (customAmountInput.value || 'dinamis') + '.png';
+        a.click();
+      });
+
+    })();
+  </script>
+</body>
+</html>

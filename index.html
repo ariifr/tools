@@ -4,75 +4,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tools</title>
+    <title>Developer Tools</title>
+    <link rel="stylesheet" href="./assets/ui.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #1e1e1e;
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            padding: 2rem;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #f0f0f0;
-            letter-spacing: 0.05rem;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .tools {
+        .tool-list {
             display: grid;
-            gap: 1rem;
+            gap: 0.6rem;
         }
 
-        a {
-            display: block;
-            padding: 1.2rem;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #aaa;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-align: center;
-            letter-spacing: 0.05rem;
+        .tool {
+            display: grid;
+            grid-template-columns: auto auto 1fr auto;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 1.05rem 1.1rem;
+            background: var(--panel);
+            border: var(--bd) solid var(--line);
+            transition: transform var(--speed) linear, box-shadow var(--speed) linear,
+                border-color var(--speed) linear;
         }
 
-        a:hover {
-            border-color: #666;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        .tool:hover {
+            transform: var(--lift);
+            border-color: var(--accent);
+            box-shadow: var(--stamp-accent);
+        }
+
+        .tool-index {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            transition: color var(--speed) linear;
+        }
+
+        .tool-icon {
+            display: inline-flex;
+            color: var(--muted);
+            transition: color var(--speed) linear;
+        }
+
+        .tool-icon .icon {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.4;
+        }
+
+        .tool-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .tool-arrow {
+            font-family: var(--mono);
+            color: var(--muted);
+            transition: color var(--speed) linear, transform var(--speed) linear;
+        }
+
+        .tool:hover .tool-index,
+        .tool:hover .tool-icon,
+        .tool:hover .tool-arrow {
+            color: var(--accent);
+        }
+
+        .tool:hover .tool-arrow {
+            transform: translateX(3px);
         }
     </style>
 </head>
 
 <body>
+    <svg class="icon-sprite" aria-hidden="true">
+        <symbol id="i-key" viewBox="0 0 24 24">
+            <circle cx="6" cy="12" r="3.5" />
+            <path d="M9.5 12H21M16 12v3.5M19.5 12v2.5" />
+        </symbol>
+        <symbol id="i-tv" viewBox="0 0 24 24">
+            <rect x="2.5" y="4" width="19" height="13" />
+            <path d="M10 8.5 15.5 10.75 10 13z" />
+            <path d="M8.5 20.5h7M12 17v3.5" />
+        </symbol>
+        <symbol id="i-code" viewBox="0 0 24 24">
+            <path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5 10.5 19.5" />
+        </symbol>
+        <symbol id="i-qr" viewBox="0 0 24 24">
+            <rect x="3.5" y="3.5" width="6.5" height="6.5" />
+            <rect x="14" y="3.5" width="6.5" height="6.5" />
+            <rect x="3.5" y="14" width="6.5" height="6.5" />
+            <path d="M14 20.5h6.5V14" />
+        </symbol>
+    </svg>
+
     <div class="container">
-        <h1>Developer Tools</h1>
-        <div class="tools">
-            <a href="/2fa">🔐 Temporary 2FA / TOTP</a>
-            <a href="/tv.html">📺 TV Streamer</a>
-            <a href="/htmlbeauty">🧹 HTML Beautifier</a>
+        <header class="header">
+            <p class="kicker">Local Toolset</p>
+            <h1>Developer Tools</h1>
+        </header>
+
+        <nav class="tool-list">
+            <a class="tool" href="/2fa">
+                <span class="tool-index">01</span>
+                <span class="tool-icon"><svg class="icon icon--tight" aria-hidden="true"><use href="#i-key" /></svg></span>
+                <span class="tool-name">Temporary 2FA / TOTP</span>
+                <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="tool" href="/tv.html">
+                <span class="tool-index">02</span>
+                <span class="tool-icon"><svg class="icon icon--tight" aria-hidden="true"><use href="#i-tv" /></svg></span>
+                <span class="tool-name">TV Streamer</span>
+                <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="tool" href="/htmlbeauty">
+                <span class="tool-index">03</span>
+                <span class="tool-icon"><svg class="icon icon--tight" aria-hidden="true"><use href="#i-code" /></svg></span>
+                <span class="tool-name">HTML Beautifier</span>
+                <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="tool" href="/qris.html">
+                <span class="tool-index">04</span>
+                <span class="tool-icon"><svg class="icon icon--tight" aria-hidden="true"><use href="#i-qr" /></svg></span>
+                <span class="tool-name">QRIS Parser &amp; Dynamic Generator</span>
+                <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+            </a>
             <!-- Tambah tool lain di sini -->
-        </div>
+        </nav>
     </div>
 </body>
 

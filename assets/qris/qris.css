@@ -1,0 +1,383 @@
+/* ==========================================================================
+   assets/qris/qris.css — QRIS Parser & Dynamic Generator page.
+   Depends on /assets/ui.css for tokens and shared primitives.
+   ========================================================================== */
+
+body {
+    padding: 2.5rem 1.25rem 5rem;
+}
+
+.qris-container {
+    max-width: 880px;
+    margin: 0 auto;
+}
+
+/* Page heading icon: one em, aligned to the cap height. */
+.page-title .icon {
+    width: 1em;
+    height: 1em;
+    stroke-width: 1.8;
+}
+
+/* The banner marker swaps icon between error and warning states. */
+.status-banner .icon-when-warning {
+    display: none;
+}
+
+.status-banner.warning .icon-when-error {
+    display: none;
+}
+
+.status-banner.warning .icon-when-warning {
+    display: inline-block;
+}
+
+/* ------------------------------------------------------------ input section */
+
+.quick-samples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.1rem;
+}
+
+.dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.6rem 1rem;
+    margin-bottom: 1rem;
+    background: var(--panel-2);
+    border: var(--bd) dashed var(--line-2);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--speed) linear, background var(--speed) linear;
+}
+
+.dropzone.dragover {
+    border-style: solid;
+    border-color: var(--accent);
+    background: rgba(255, 179, 2, 0.07);
+}
+
+.dropzone-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 36px;
+    background: var(--well);
+    border: var(--bd) solid var(--accent);
+    color: var(--accent);
+}
+
+.dropzone-icon .icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
+}
+
+.dropzone-icon .icon-busy {
+    display: none;
+}
+
+.dropzone-icon.is-busy .icon {
+    display: none;
+}
+
+.dropzone-icon.is-busy .icon-busy {
+    display: inline-block;
+}
+
+.dropzone-text {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.dropzone-browse {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.textarea-wrapper {
+    position: relative;
+}
+
+.qris-textarea {
+    min-height: 95px;
+    color: var(--accent);
+    resize: vertical;
+}
+
+/* --------------------------------------------------------- merchant details */
+
+.merchant-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    margin-top: 1rem;
+    background: var(--line);
+    border: var(--bd) solid var(--line);
+}
+
+/* 8 fields in 2 or 4 columns always fills the last row, so no bare gap shows. */
+@media (min-width: 760px) {
+    .merchant-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.info-item {
+    padding: 0.8rem 0.9rem;
+    background: var(--panel-2);
+}
+
+.info-value {
+    margin-top: 0.35rem;
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.info-value.mono {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 400;
+}
+
+/* ------------------------------------------------------- dynamic generator */
+
+.generator-box {
+    margin-top: 1.4rem;
+    padding: 1.1rem;
+    background: var(--panel-2);
+    border: var(--bd) solid var(--line);
+}
+
+.generator-box .prompt {
+    margin-bottom: 0.6rem;
+    color: var(--accent);
+}
+
+.input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+}
+
+.amount-input-group {
+    display: flex;
+    flex: 1;
+    min-width: 200px;
+    background: var(--well);
+    border: var(--bd) solid var(--line);
+}
+
+.amount-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 0.9rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.amount-input {
+    flex: 1;
+    padding: 0.85rem 0.9rem;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 1rem;
+}
+
+.amount-input:focus {
+    border: none;
+    box-shadow: none;
+}
+
+.dynamic-output {
+    display: none;
+    margin-top: 1.2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+}
+
+.qr-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.4rem;
+}
+
+.qr-canvas-wrapper {
+    display: inline-flex;
+    padding: 10px;
+    background: #fff;
+    border: var(--bd) solid var(--line);
+}
+
+.qr-canvas-wrapper canvas {
+    display: block;
+}
+
+.qr-meta {
+    flex: 1;
+    min-width: 240px;
+}
+
+/* ------------------------------------------------------------ TLV inspector */
+
+details.tlv-details {
+    margin-top: 1.5rem;
+    background: var(--panel);
+    border: var(--bd) solid var(--line);
+}
+
+details.tlv-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+
+details.tlv-details summary:hover {
+    color: var(--accent);
+}
+
+details.tlv-details summary::-webkit-details-marker {
+    display: none;
+}
+
+details.tlv-details summary::after {
+    content: "[+]";
+    color: var(--muted);
+    letter-spacing: 0;
+}
+
+details.tlv-details[open] summary::after {
+    content: "[-]";
+    color: var(--accent);
+}
+
+.tlv-table-wrapper {
+    overflow-x: auto;
+    padding: 0 1.25rem 1.25rem;
+}
+
+.tlv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    text-align: left;
+}
+
+.tlv-table th {
+    padding: 0.6rem 0.7rem;
+    background: var(--panel-2);
+    border-bottom: var(--bd) solid var(--line);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.tlv-table td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+}
+
+.tlv-table tr:hover td {
+    background: rgba(255, 179, 2, 0.05);
+}
+
+.tag-badge {
+    display: inline-block;
+    padding: 0.12rem 0.4rem;
+    background: var(--accent);
+    border: var(--bd) solid var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.tag-badge.sub {
+    background: var(--well);
+    border-color: var(--line-2);
+    color: var(--muted);
+}
+
+.subtag-row td {
+    background: #0a0a0b;
+}
+
+.tlv-child-name,
+.tlv-child-value {
+    color: var(--muted);
+}
+
+/* -------------------------------------------------------------------- toast */
+
+.toast {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1000;
+    padding: 0.7rem 1rem;
+    background: var(--ok);
+    border: var(--bd) solid var(--ok);
+    color: var(--ok-ink);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.15s linear, transform 0.15s linear;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: none;
+}
+
+#parsedSection {
+    display: none;
+}

@@ -1,0 +1,506 @@
+/* ==========================================================================
+   ui.css — shared design system for the tools hub.
+
+   Industrial / brutalist: flat surfaces, hard 2px borders, square corners,
+   all-caps monospace chrome, and offset "stamp" shadows on interaction.
+   No gradients, no glows, no rounded pills, no emoji.
+
+   This file holds tokens and reusable primitives only.
+   Page specific rules live next to their page (assets/<tool>/*.css).
+   ========================================================================== */
+
+:root {
+    /* surfaces */
+    --bg: #0c0c0e;
+    --panel: #141416;
+    --panel-2: #1b1b1f;
+    --well: #08080a;
+
+    /* ink */
+    --ink: #eaeae5;
+    --muted: #8b8b93;
+
+    /* lines */
+    --line: #2f2f35;
+    --line-2: #55555e;
+
+    /* signal */
+    --accent: #ffb302;
+    --ok: #31c46d;
+    --danger: #ff4b3e;
+    --info: #57a0ff;
+
+    /* ink for text sitting on a signal colour */
+    --accent-ink: #1a1200;
+    --ok-ink: #04160b;
+    --danger-ink: #1a0402;
+
+    /* type */
+    --sans: ui-sans-serif, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+
+    /* geometry */
+    --bd: 2px;
+    --lift: translate(-2px, -2px);
+    --stamp: 4px 4px 0 var(--ink);
+    --stamp-accent: 4px 4px 0 var(--accent);
+
+    --speed: 90ms;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image:
+        linear-gradient(to right, rgba(234, 234, 229, 0.022) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(234, 234, 229, 0.022) 1px, transparent 1px);
+    background-size: 34px 34px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+p {
+    margin: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.mono {
+    font-family: var(--mono);
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.container {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 3.25rem 1.25rem 4.5rem;
+}
+
+.header {
+    margin-bottom: 2.25rem;
+}
+
+.header h1,
+.page-title {
+    font-size: clamp(1.55rem, 5vw, 2rem);
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+    margin-top: 0.6rem;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* Small all-caps label used above a title. */
+.kicker,
+.label,
+.info-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+}
+
+.kicker {
+    margin-bottom: 0.65rem;
+    color: var(--accent);
+}
+
+.nav-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding-bottom: 0.9rem;
+    margin-bottom: 2rem;
+    border-bottom: var(--bd) solid var(--line);
+}
+
+.back-link,
+.meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.7rem;
+    background: var(--panel);
+    border: var(--bd) solid var(--line);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    transition: color var(--speed) linear, background var(--speed) linear,
+        border-color var(--speed) linear;
+}
+
+.back-link:hover {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------- panels */
+
+.card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--panel);
+    border: var(--bd) solid var(--line);
+}
+
+.card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 1.15rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+}
+
+/* -------------------------------------------------------------------- forms */
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: var(--well);
+    border: var(--bd) solid var(--line);
+    border-radius: 0;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #5c5c64;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Row of small square controls pinned inside a text input. */
+.input-actions {
+    position: absolute;
+    top: 50%;
+    right: 0.6rem;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 0.4rem;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem;
+    background: var(--panel-2);
+    border: var(--bd) solid var(--line);
+    border-radius: 0;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: color var(--speed) linear, background var(--speed) linear,
+        border-color var(--speed) linear;
+}
+
+.icon-btn:hover {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-sample,
+.default-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.62rem 1rem;
+    background: var(--panel-2);
+    border: var(--bd) solid var(--line);
+    border-radius: 0;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: transform var(--speed) linear, box-shadow var(--speed) linear,
+        background var(--speed) linear, color var(--speed) linear,
+        border-color var(--speed) linear;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-sample:hover,
+.default-btn:hover {
+    transform: var(--lift);
+    box-shadow: var(--stamp);
+    border-color: var(--ink);
+}
+
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-sample:active,
+.default-btn:active {
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.btn-primary:hover {
+    border-color: var(--accent);
+    box-shadow: var(--stamp);
+}
+
+/* ------------------------------------------------------------------- badges */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.26rem 0.5rem;
+    border: var(--bd) solid;
+    border-radius: 0;
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+}
+
+.badge-valid {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: var(--ok-ink);
+}
+
+.badge-invalid {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--danger-ink);
+}
+
+.badge-static {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.badge-dynamic {
+    background: var(--info);
+    border-color: var(--info);
+    color: #03101f;
+}
+
+/* ------------------------------------------------------------------ notices */
+
+.error-message,
+.status-banner {
+    display: none;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 0.95rem;
+    margin-top: 1rem;
+    background: rgba(255, 75, 62, 0.1);
+    border: var(--bd) solid var(--danger);
+    border-left-width: 8px;
+    color: #ffb3ac;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+}
+
+.error-message.show,
+.status-banner.show {
+    display: flex;
+}
+
+.status-banner.warning {
+    background: rgba(255, 179, 2, 0.1);
+    border-color: var(--accent);
+    color: #ffd77a;
+}
+
+/* Square marker at the start of a banner. */
+.status-banner>span:first-child {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    background: var(--danger);
+    color: var(--danger-ink);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.status-banner.warning>span:first-child {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.status-banner>span:first-child .icon {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.6;
+}
+
+/* -------------------------------------------------------------------- icons */
+
+/* Inline <symbol> sprite holder — never visible. */
+.icon-sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.icon {
+    display: inline-block;
+    flex: none;
+    width: 1.2em;
+    height: 1.2em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    vertical-align: -0.18em;
+}
+
+/* Heavier stroke so small icons stay legible at chrome sizes. */
+.icon--tight {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.6;
+}
+
+.icon-btn .icon {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.4;
+}
+
+/* Icon plus label on one axis. */
+.with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+/* -------------------------------------------------------------------- misc */
+
+.tooltip,
+.hint {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
